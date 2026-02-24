@@ -1,96 +1,127 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-// Эмитим событие, когда анимация закончилась
-const emit = defineEmits(['finished'])
-
-// Прогресс бар (фейковый для красоты)
-const progress = ref(0)
+const visible = ref(false)
 
 onMounted(() => {
-  // Симуляция загрузки от 0 до 100%
-  const interval = setInterval(() => {
-    if (progress.value < 100) {
-      progress.value += 2 // Скорость загрузки
-    } else {
-      clearInterval(interval)
-      // Небольшая задержка перед тем как убрать экран
-      setTimeout(() => {
-        emit('finished')
-      }, 500)
-    }
-  }, 30)
+  // Small delay so the animation feels intentional
+  setTimeout(() => (visible.value = true), 50)
 })
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fffbf0] overflow-hidden">
-    <!-- 1. Фоновый круг (Солнце) -->
-    <!-- spring - эффект пружины при появлении -->
-    <div
-      class="absolute w-48 h-48 bg-red-500 rounded-full opacity-10 blur-xl"
-      v-motion
-      :initial="{ scale: 0, opacity: 0 }"
-      :enter="{ 
-        scale: 2.5, 
-        opacity: 0.1, 
-        transition: { duration: 1500, type: 'spring' } 
-      }"
-    ></div>
+  <div class="splash">
+    <div class="content" :class="{ visible }">
 
-    <div class="relative z-10 flex flex-col items-center">
-      <!-- 2. Красный круг (Четкий) -->
-      <div 
-        class="w-32 h-32 bg-primary rounded-full flex items-center justify-center shadow-xl shadow-red-200"
-        v-motion
-        :initial="{ scale: 0 }"
-        :enter="{ 
-          scale: 1, 
-          transition: { 
-            type: 'spring', 
-            stiffness: 200, 
-            damping: 15, 
-            delay: 200 
-          } 
-        }"
-      >
-        <!-- 3. Иероглиф 学 (Gaku - Учеба) -->
-        <span 
-          class="text-white text-6xl font-black mb-2 mr-1"
-          v-motion
-          :initial="{ opacity: 0, scale: 2, filter: 'blur(10px)' }"
-          :enter="{ 
-            opacity: 1, 
-            scale: 1, 
-            filter: 'blur(0px)',
-            transition: { duration: 800, delay: 600 } 
-          }"
-        >
-          学
-        </span>
+      <!-- Logo bubble -->
+      <div class="logo-bubble">
+        <div class="bubble-icon">🌍</div>
       </div>
 
-      <!-- 4. Текст и полоска загрузки -->
-      <div 
-        class="mt-12 flex flex-col items-center gap-3"
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0, transition: { delay: 1000 } }"
-      >
-        <h2 class="text-gray-400 font-medium tracking-widest text-sm uppercase">
-          Loading Data
-        </h2>
-        
-        <!-- Кастомный прогресс бар -->
-        <div class="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div 
-            class="h-full bg-primary transition-all duration-100 ease-out"
-            :style="{ width: `${progress}%` }"
-          ></div>
-        </div>
-        
-        <span class="text-xs text-gray-300 font-mono">{{ progress }}%</span>
+      <!-- App name -->
+      <h1 class="app-name">LinguaApp</h1>
+      <p class="tagline">Learn any language, every day</p>
+
+      <!-- Loading dots -->
+      <div class="dots">
+        <span class="dot" style="--d: 0s" />
+        <span class="dot" style="--d: 0.15s" />
+        <span class="dot" style="--d: 0.3s" />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Center column */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Logo */
+.logo-bubble {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  background: #58cc02;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 #46a302;
+  margin-bottom: 8px;
+  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.bubble-icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* Text */
+.app-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1f1f1f;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.tagline {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #afafaf;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* Loading dots */
+.dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 32px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e5e5;
+  animation: bounce 0.9s var(--d, 0s) ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { background: #e5e5e5; transform: scale(1); }
+  40%           { background: #58cc02; transform: scale(1.3); }
+}
+</style>
