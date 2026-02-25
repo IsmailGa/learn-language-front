@@ -12,6 +12,7 @@ const router = createRouter({
     { path: '/settings', component: SettingsView },
     { path: '/login', component: () => import('../pages/LoginView.vue') },
     { path: '/verify-email', component: () => import('../pages/VerifyEmail.vue') },
+    { path: '/alphabet', component: () => import('../pages/AlphabetView.vue') },
     { path: '/unit/:id', component: () => import('../pages/UnitView.vue') },
     { path: '/lesson/:id', component: () => import('../pages/LessonView.vue') },
     { path: '/:pathMatch(.*)*', component: () => import('../pages/NotFoundView.vue') }
@@ -21,7 +22,7 @@ const router = createRouter({
 import { useUserStore } from '@/stores/user';
 import WebApp from '@twa-dev/sdk';
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const userStore = useUserStore();
   const publicPages = ['/login', '/verify-email'];
   const authRequired = !publicPages.includes(to.path);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import WebApp from '@twa-dev/sdk'
 import api from '@/api/axios'
@@ -25,7 +25,32 @@ const isFinished = ref(false)
 const mistakes = ref(0)
 const earnedXp = ref(0)
 
+const handleKeydown = (e: KeyboardEvent) => {
+    if (isFinished.value || !currentExercise.value) return
+
+    if (e.key === 'Enter') {
+        if (!isChecking.value && canCheck.value) {
+            checkAnswer()
+        } else if (isChecking.value) {
+            nextExercise()
+        }
+        return
+    }
+
+    if (currentExercise.value.type === 'multiple_choice' && !isChecking.value) {
+        if (e.ctrlKey || e.altKey || e.metaKey) return
+        const key = parseInt(e.key)
+        if (key >= 1 && key <= 4) {
+            const options = currentExercise.value.payload.options
+            if (key <= options.length) {
+                selectedOption.value = options[key - 1]
+            }
+        }
+    }
+}
+
 onMounted(async () => {
+    window.addEventListener('keydown', handleKeydown)
     isLoading.value = true
     try {
         const res = await api.get('/v1/courses/practice')
@@ -36,6 +61,10 @@ onMounted(async () => {
     } finally {
         isLoading.value = false
     }
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
 })
 
 const totalExercises = computed(() => exercises.value.length)
@@ -186,7 +215,7 @@ const goBack = () => router.replace('/practice')
                                     isChecking && option === currentExercise.payload.correct ? 'border-emerald-500 bg-emerald-500 text-white' : '',
                                     isChecking && selectedOption === option && !isCorrect ? 'border-red-400 bg-red-400 text-white' : '',
                                 ]">
-                                {{ (['A', 'B', 'C', 'D'] as const)[idx] }}
+                                {{ idx + 1 }}
                             </div>
                             <span class="font-medium text-slate-700 text-[15px]">{{ option }}</span>
                         </CardContent>
@@ -222,12 +251,12 @@ const goBack = () => router.replace('/practice')
                 <div class="max-w-2xl mx-auto">
                     <Button v-if="!isChecking" class="w-full h-12 text-base font-bold rounded-xl" :disabled="!canCheck"
                         @click="checkAnswer">
-                        Проверить
+                        Проверить <span class="ml-2 opacity-50 font-normal"> (Enter)</span>
                     </Button>
                     <Button v-else class="w-full h-12 text-base font-bold rounded-xl"
-                        :class="isCorrect ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'"
+                        :class="isCorrect ? 'bg-emerald-500 hover:bg-emerald-600 outline-none focus:ring-2 focus:ring-emerald-400' : 'bg-red-500 hover:bg-red-600 outline-none focus:ring-2 focus:ring-red-400'"
                         @click="nextExercise">
-                        Продолжить
+                        Продолжить <span  class="ml-2 opacity-70 font-normal"> (Enter)</span>
                     </Button>
                 </div>
             </div>
