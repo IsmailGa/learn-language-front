@@ -12,6 +12,8 @@ const router = createRouter({
     { path: '/settings', component: SettingsView },
     { path: '/login', component: () => import('../pages/LoginView.vue') },
     { path: '/verify-email', component: () => import('../pages/VerifyEmail.vue') },
+    { path: '/alphabet', component: () => import('../pages/AlphabetView.vue') },
+    { path: '/select-language', component: () => import('../pages/LanguageSelectionView.vue') },
     { path: '/unit/:id', component: () => import('../pages/UnitView.vue') },
     { path: '/lesson/:id', component: () => import('../pages/LessonView.vue') },
     { path: '/:pathMatch(.*)*', component: () => import('../pages/NotFoundView.vue') }
@@ -21,7 +23,7 @@ const router = createRouter({
 import { useUserStore } from '@/stores/user';
 import WebApp from '@twa-dev/sdk';
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore();
   const publicPages = ['/login', '/verify-email'];
   const authRequired = !publicPages.includes(to.path);
@@ -29,6 +31,10 @@ router.beforeEach((to, from, next) => {
 
   // If in Telegram, we assume App.vue handles login
   if (isTelegram) {
+    if (to.path !== '/select-language' && userStore.user && !userStore.user.current_course_id) {
+      next('/select-language');
+      return;
+    }
     next();
     return;
   }
@@ -36,8 +42,23 @@ router.beforeEach((to, from, next) => {
   if (authRequired && !userStore.token) {
     next('/login');
   } else {
-    next();
+    // Check if course is selected
+    if (userStore.token && !userStore.user) {
+      try {
+        await userStore.fetchProfile();
+      } catch (e) {
+        next('/login');
+        return;
+      }
+    }
+
+    if (userStore.user && !userStore.user.current_course_id && to.path !== '/select-language' && authRequired) {
+      next('/select-language');
+    } else {
+      next();
+    }
   }
 });
+
 
 export default router

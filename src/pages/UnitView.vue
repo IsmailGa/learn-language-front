@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WebApp from '@twa-dev/sdk'
 import api from '@/api/axios'
@@ -27,23 +27,37 @@ const unitId = route.params.id as string
 const unitDetails = ref<{ title: string; description: string; lessons: any[] } | null>(null)
 const isLoading = ref(true)
 
+const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+        goBack()
+        return
+    }
+}
+
 onMounted(async () => {
+    window.addEventListener('keydown', handleKeydown)
+
     try {
         isLoading.value = true
-        const coursesRes = await api.get('/v1/courses')
-        if (coursesRes.data && coursesRes.data.length > 0) {
-            const courseId = coursesRes.data[0].id
+        const courseId = userStore.user?.current_course_id
+        if (courseId) {
             const res = await api.get(`/v1/courses/${courseId}/units/${unitId}`)
             unitDetails.value = res.data
             if (unitDetails.value?.lessons) {
                 unitDetails.value.lessons.sort((a: any, b: any) => a.order_index - b.order_index)
             }
+        } else {
+            router.push('/select-language')
         }
     } catch (err) {
         console.error('Failure fetching unit:', err)
     } finally {
         isLoading.value = false
     }
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
 })
 
 const showNoHeartsDialog = ref(false)
