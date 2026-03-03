@@ -117,7 +117,26 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async selectCourse(courseId: string) {
+      this.loading = true;
+      try {
+        const response = await api.post('/v1/users/me/select-course', null, {
+          params: { course_id: courseId }
+        });
+        if (this.user) {
+          this.user.current_course_id = courseId;
+        }
+        return response.data;
+      } catch (error) {
+        console.error('Select course failed', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     logout() {
+
       this.user = null;
       this.token = null;
       localStorage.removeItem('token');

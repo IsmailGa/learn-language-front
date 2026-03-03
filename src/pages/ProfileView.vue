@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import WebApp from '@twa-dev/sdk'
 import { useRouter } from 'vue-router'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import Skeleton from '@/components/ui/skeleton.vue'
 import { useUserStore } from '@/stores/user'
+import api from '@/api/axios'
 import {
     Star, Flame, Trophy, Heart, Globe, Crown,
     Target, BookOpen, TrendingUp, Settings, LogOut,
@@ -25,6 +26,9 @@ const totalXp = computed(() => userStore.user?.xp || 0)
 const hearts = computed(() => userStore.user?.hearts ?? 5)
 const bestStreak = computed(() => Math.max(currentStreak.value, 15))
 
+const currentCourse = ref<any>(null)
+const isLoadingCourse = ref(false)
+
 const achievements = ref([
     { id: 1, title: 'Первые шаги', icon: Target as Component, unlocked: true, description: 'Завершил первый урок' },
     { id: 2, title: 'Неделя силы', icon: Flame as Component, unlocked: true, description: '7 дней подряд', fill: true },
@@ -41,10 +45,31 @@ const stats = computed(() => [
     { label: 'Сердечки', value: hearts.value, icon: Heart as Component, color: 'text-red-500', fill: true },
 ])
 
+const fetchCurrentCourse = async () => {
+    if (!userStore.user?.current_course_id) return
+    isLoadingCourse.value = true
+    try {
+        const response = await api.get(`/api/v1/courses/${userStore.user.current_course_id}`)
+        currentCourse.value = response.data
+    } catch (error) {
+        console.error('Failed to fetch course details:', error)
+    } finally {
+        isLoadingCourse.value = false
+    }
+}
+
+onMounted(() => {
+    fetchCurrentCourse()
+})
+
 const hapticTap = () => { WebApp.HapticFeedback.impactOccurred('light') }
 const goToSettings = () => { WebApp.HapticFeedback.impactOccurred('medium'); router.push('/settings') }
 const logout = async () => { WebApp.HapticFeedback.impactOccurred('medium'); await userStore.logout(); router.push('/login') }
-const refreshProfile = async () => { WebApp.HapticFeedback.impactOccurred('medium'); await userStore.fetchProfile(true) }
+const refreshProfile = async () => {
+    WebApp.HapticFeedback.impactOccurred('medium');
+    await userStore.fetchProfile(true);
+    await fetchCurrentCourse();
+}
 </script>
 
 <template>
@@ -73,10 +98,13 @@ const refreshProfile = async () => { WebApp.HapticFeedback.impactOccurred('mediu
                         <!-- User Info -->
                         <div class="flex-1">
                             <h2 class="text-2xl font-bold">{{ userStore.user?.username || 'Ученик' }}</h2>
-                            <p class="text-sm opacity-75">Изучает корейский</p>
+                            <p class="text-sm opacity-75">
+                                {{ currentCourse ? `Изучает ${currentCourse.target_lang?.native_name}` : 'Выберите курс'
+                                }}
+                            </p>
                             <div class="flex items-center gap-2 mt-2">
                                 <div class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
-                                    Уровень: Новичок
+                                    {{ currentCourse?.title || 'Нет курса' }}
                                 </div>
                             </div>
                         </div>
@@ -118,26 +146,15 @@ const refreshProfile = async () => { WebApp.HapticFeedback.impactOccurred('mediu
                 </h3>
                 <Card class="border-2 border-slate-200">
                     <CardContent class="p-4 space-y-4">
-                        <div>
+                        <div v-if="currentCourse">
                             <div class="flex justify-between text-sm mb-2">
-                                <span class="font-medium text-slate-700">Хангыль</span>
-                                <span class="text-slate-500">85%</span>
+                                <span class="font-medium text-slate-700">{{ currentCourse.title }}</span>
+                                <span class="text-slate-500">0%</span>
                             </div>
-                            <Progress :model-value="85" class="h-2" />
+                            <Progress :model-value="0" class="h-2" />
                         </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="font-medium text-slate-700">Приветствия</span>
-                                <span class="text-slate-500">40%</span>
-                            </div>
-                            <Progress :model-value="40" class="h-2" />
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="font-medium text-slate-700">Общий прогресс</span>
-                                <span class="text-slate-500">25%</span>
-                            </div>
-                            <Progress :model-value="25" class="h-2" />
+                        <div v-else class="text-center py-4 text-slate-500 text-sm">
+                            Выберите курс, чтобы увидеть прогресс
                         </div>
                     </CardContent>
                 </Card>
@@ -168,19 +185,21 @@ const refreshProfile = async () => { WebApp.HapticFeedback.impactOccurred('mediu
             </div>
 
             <!-- Actions -->
-            <div v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { duration: 200, delay: 150 } }"
-                class="space-y-3">
-                <Button variant="outline"
-                    class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 flex items-center gap-2"
-                    @click="goToSettings">
-                    <Settings class="w-4 h-4" /> Настройки
-                </Button>
-                <Button variant="outline"
-                    class="w-full h-12 rounded-xl border-2 border-red-200 text-red-600 bg-white hover:bg-red-50 flex items-center gap-2"
-                    @click="logout">
-                    <LogOut class="w-4 h-4" /> Выйти
-                </Button>
-            </div>
+            <Button variant="outline"
+                class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 flex items-center gap-2"
+                @click="router.push('/select-language')">
+                <Globe class="w-4 h-4" /> Сменить язык обучения
+            </Button>
+            <Button variant="outline"
+                class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 flex items-center gap-2"
+                @click="goToSettings">
+                <Settings class="w-4 h-4" /> Настройки
+            </Button>
+            <Button variant="outline"
+                class="w-full h-12 rounded-xl border-2 border-red-200 text-red-600 bg-white hover:bg-red-50 flex items-center gap-2"
+                @click="logout">
+                <LogOut class="w-4 h-4" /> Выйти
+            </Button>
         </div>
     </div>
 </template>

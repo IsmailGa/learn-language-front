@@ -26,6 +26,11 @@ const mistakes = ref(0)
 const earnedXp = ref(0)
 
 const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+        goBack()
+        return
+    }
+
     if (isFinished.value || !currentExercise.value) return
 
     if (e.key === 'Enter') {
@@ -68,7 +73,16 @@ onUnmounted(() => {
 })
 
 const totalExercises = computed(() => exercises.value.length)
-const progressPercent = computed(() => totalExercises.value > 0 ? (currentExerciseIndex.value / totalExercises.value) * 100 : 0)
+const progressPercent = computed({
+  get() {
+    return totalExercises.value > 0 
+      ? (currentExerciseIndex.value / totalExercises.value) * 100 
+      : 0
+  },
+  set(newValue) {
+    currentExerciseIndex.value = Math.round((newValue / 100) * totalExercises.value)
+  }
+})
 
 const currentExercise = computed(() => {
     if (!exercises.value.length) return null
@@ -114,6 +128,7 @@ const nextExercise = async () => {
 
 const finishPractice = async () => {
     isFinished.value = true
+    progressPercent.value = 100
     try {
         const res = await api.post('/v1/courses/practice/complete')
         earnedXp.value = res.data.xp_earned
@@ -256,7 +271,7 @@ const goBack = () => router.replace('/practice')
                     <Button v-else class="w-full h-12 text-base font-bold rounded-xl"
                         :class="isCorrect ? 'bg-emerald-500 hover:bg-emerald-600 outline-none focus:ring-2 focus:ring-emerald-400' : 'bg-red-500 hover:bg-red-600 outline-none focus:ring-2 focus:ring-red-400'"
                         @click="nextExercise">
-                        Продолжить <span  class="ml-2 opacity-70 font-normal"> (Enter)</span>
+                        Продолжить <span class="ml-2 opacity-70 font-normal"> (Enter)</span>
                     </Button>
                 </div>
             </div>

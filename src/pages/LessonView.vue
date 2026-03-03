@@ -44,6 +44,11 @@ const goToPracticeFromDialog = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+        goBack()
+        return
+    }
+
     if (showNoHeartsDialog.value || isOutOfHearts.value || isFinished.value || !currentExercise.value) return
 
     if (e.key === 'Enter') {
@@ -97,7 +102,16 @@ onUnmounted(() => {
 })
 
 const totalExercises = computed(() => lesson.value?.exercises?.length ?? 0)
-const progressPercent = computed(() => totalExercises.value > 0 ? (currentExerciseIndex.value / totalExercises.value) * 100 : 0)
+const progressPercent = computed({
+  get() {
+    return totalExercises.value > 0 
+      ? (currentExerciseIndex.value / totalExercises.value) * 100 
+      : 0
+  },
+  set(newValue) {
+    currentExerciseIndex.value = Math.round((newValue / 100) * totalExercises.value)
+  }
+})
 
 const currentExercise = computed(() => {
     if (!lesson.value?.exercises?.length) return null
@@ -162,6 +176,7 @@ const nextExercise = async () => {
 
 const finishLesson = async () => {
     isFinished.value = true
+    progressPercent.value = 100
     try {
         const res = await api.post(`/v1/courses/lessons/${lessonId}/complete`, null, {
             params: { mistakes: mistakes.value },

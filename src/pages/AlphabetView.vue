@@ -5,19 +5,27 @@ import api from '@/api/axios'
 import Sidebar from '@/components/Sidebar.vue'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 const isLoading = ref(true)
 const characters = ref<any[]>([])
 
 onMounted(async () => {
     isLoading.value = true
     try {
-        // Мы предполагаем, что курс "Корейский" является основным, или получаем его ID
-        // Пока мы можем получить список курсов и взять первый активный
-        const coursesRes = await api.get('/v1/courses')
-        if (coursesRes.data && coursesRes.data.length > 0) {
-            const courseId = coursesRes.data[0].id
+        const courseId = userStore.user?.current_course_id
+        if (courseId) {
             const charRes = await api.get(`/v1/courses/${courseId}/characters`)
             characters.value = charRes.data
+        } else {
+            // Fallback: try to get first course if somehow not selected
+            const coursesRes = await api.get('/v1/courses')
+            if (coursesRes.data && coursesRes.data.length > 0) {
+                const firstCourseId = coursesRes.data[0].id
+                const charRes = await api.get(`/v1/courses/${firstCourseId}/characters`)
+                characters.value = charRes.data
+            }
         }
     } catch (e) {
         console.error('Failed to load characters', e)
@@ -44,7 +52,7 @@ const playSound = (_char: any) => {
         <Sidebar active-item="alphabet" />
 
         <main
-            class="flex-1 flex flex-col min-w-0 md:pl-20 border-l border-slate-200 bg-slate-50 relative pb-[calc(env(safe-area-inset-bottom)+70px)] md:pb-0 h-full">
+            class="flex-1 flex flex-col min-w-0 border-l border-slate-200 bg-slate-50 relative pb-[calc(env(safe-area-inset-bottom)+70px)] md:pb-0 h-full">
             <header
                 class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 p-5 shrink-0 flex items-center justify-between">
                 <div>
