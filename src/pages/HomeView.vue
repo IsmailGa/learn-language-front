@@ -65,9 +65,15 @@ const unitIcons: Component[] = [HandMetal, MessageCircle, Hash, Soup, BookOpen, 
 onMounted(async () => {
   try {
     isLoading.value = true
-    const response = await api.get('/v1/courses')
-    if (response.data && response.data.length > 0) {
-      const courseId = response.data[0].id
+
+    // Ensure user profile is loaded
+    if (!userStore.user) {
+      await userStore.fetchProfile()
+    }
+
+    const courseId = userStore.user?.current_course_id
+
+    if (courseId) {
       const courseResponse = await api.get(`/v1/courses/${courseId}`)
       const courseData = courseResponse.data
       courseData.units = courseData.units
@@ -83,6 +89,10 @@ onMounted(async () => {
         }))
         .sort((a: any, b: any) => a.order_index - b.order_index)
       currentCourse.value = courseData
+    } else {
+      // If no course selected, the router should have intercepted this,
+      // but as a fallback redirect to selection
+      router.push('/select-language')
     }
   } catch (error) {
     console.error('Failed to fetch course data:', error)
@@ -90,6 +100,7 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
 
 const showNoHeartsDialog = ref(false)
 

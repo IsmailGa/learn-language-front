@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import WebApp from '@twa-dev/sdk'
-import { Home, Gamepad2, User } from 'lucide-vue-next'
+import { Home, Gamepad2, User, Type } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
 const route = useRoute()
@@ -9,6 +9,7 @@ const router = useRouter()
 
 const tabs: { path: string; icon: Component; label: string }[] = [
     { path: '/', icon: Home, label: 'Главная' },
+    { path: '/alphabet', icon: Type, label: 'Алфавит' },
     { path: '/practice', icon: Gamepad2, label: 'Практика' },
     { path: '/profile', icon: User, label: 'Профиль' }
 ]
