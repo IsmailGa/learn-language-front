@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import api from '@/api/axios'
+import { getFlagCode } from '@/utils/flags'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -112,7 +113,7 @@ const goBack = () => {
                         class="cursor-pointer border-2 border-white hover:border-primary/20 active:scale-[0.98] transition-all"
                         @click="selectSourceLang(lang.id)">
                         <CardContent class="p-4 flex items-center gap-4">
-                            <span class="text-3xl">{{ lang.flag_emoji || '🌐' }}</span>
+                            <span :class="['fi', 'fi-' + getFlagCode(lang.code), 'text-3xl', 'rounded-sm', 'shadow-sm']"></span>
                             <div class="flex-1">
                                 <h3 class="font-bold text-slate-900">{{ lang.native_name }}</h3>
                                 <p class="text-xs text-slate-500">{{ lang.name }}</p>
@@ -137,8 +138,8 @@ const goBack = () => {
                     ]" @click="selectCourse(course.id)">
                         <CardContent class="p-5 flex items-center gap-4">
                             <div
-                                class="text-4xl w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-white transition-colors">
-                                {{ course.target_lang?.flag_emoji || '🌐' }}
+                                class="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-white transition-colors overflow-hidden">
+                                <span :class="['fi', 'fi-' + getFlagCode(course.target_lang?.code), 'text-3xl', 'rounded-sm', 'shadow-sm']"></span>
                             </div>
                             <div class="flex-1">
                                 <h3 class="font-bold text-slate-900 text-lg">{{ course.title }}</h3>

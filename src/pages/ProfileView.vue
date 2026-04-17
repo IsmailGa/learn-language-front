@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import Skeleton from '@/components/ui/skeleton.vue'
 import { useUserStore } from '@/stores/user'
 import api from '@/api/axios'
+import { getFlagCode } from '@/utils/flags'
 import {
     Star, Flame, Trophy, Heart, Globe, Crown,
     Target, BookOpen, TrendingUp, Settings, LogOut,
@@ -103,7 +104,8 @@ const refreshProfile = async () => {
                                 }}
                             </p>
                             <div class="flex items-center gap-2 mt-2">
-                                <div class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+                                <div class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-2">
+                                    <span v-if="currentCourse" :class="['fi', 'fi-' + getFlagCode(currentCourse.target_lang?.code)]"></span>
                                     {{ currentCourse?.title || 'Нет курса' }}
                                 </div>
                             </div>
