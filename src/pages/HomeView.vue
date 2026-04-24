@@ -129,7 +129,7 @@ const hapticTap = () => {
   <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-24">
     <!-- Header -->
     <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <div class="flex items-center justify-between px-4 h-14 max-w-3xl mx-auto">
+      <div class="flex items-center justify-between px-4 h-14 max-w-5xl mx-auto">
         <div class="flex items-center gap-2 cursor-pointer" @click="hapticTap">
           <div class="w-8 h-8 rounded-lg border border-slate-200 shadow-sm flex items-center justify-center">
             <BookOpen class="w-4 h-4 text-primary" />
@@ -152,7 +152,7 @@ const hapticTap = () => {
       </div>
     </header>
 
-    <div class="md:px-0 px-4 py-6 max-w-3xl mx-auto">
+    <div class="md:px-6 px-4 py-6 max-w-5xl mx-auto">
       <!-- Skeleton Loading -->
       <div v-if="isLoading" class="space-y-4">
         <div v-for="i in 3" :key="i" class="flex items-center gap-4">
@@ -165,39 +165,44 @@ const hapticTap = () => {
         </div>
       </div>
 
-      <!-- Units List -->
-      <div v-else-if="currentCourse" class="space-y-4">
-        <div v-for="(unit, index) in currentCourse.units" :key="unit.id" v-motion :initial="{ opacity: 0 }"
-          :enter="{ opacity: 1, transition: { duration: 200, delay: index * 50 } }">
+      <!-- Units Grid -->
+      <div v-else-if="currentCourse" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div
+          v-for="(unit, index) in currentCourse.units"
+          :key="unit.id"
+          v-motion
+          :initial="{ opacity: 0, y: 10 }"
+          :enter="{ opacity: 1, y: 0, transition: { duration: 250, delay: index * 60 } }"
+        >
           <Card
-            class="overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98] transition-transform"
-            @click="openUnit(unit.id)">
-            <CardContent class="p-0">
-              <div class="flex items-center gap-4 p-4">
-                <!-- Unit Icon Circle -->
+            class="overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] h-full"
+            @click="openUnit(unit.id)"
+          >
+            <!-- Цветная шапка-акцент -->
+            <div :class="['h-1.5 w-full bg-gradient-to-r', unit.color]" />
+            <CardContent class="p-5">
+              <div class="flex items-start gap-4">
+                <!-- Icon -->
                 <div :class="[
-                  'w-14 h-14 rounded-full flex items-center justify-center shrink-0 shadow-md border-[3px] border-white',
-                  `bg-gradient-to-b ${unit.color}`
+                  'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md',
+                  unit.gradient
                 ]">
                   <component :is="unitIcons[unit.order_index % unitIcons.length]" class="w-6 h-6 text-white" />
                 </div>
-                <!-- Unit Info -->
+                <!-- Info -->
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-bold text-slate-800 text-base truncate">{{ unit.title }}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">{{ unit.description }}</p>
-                  <div class="mt-2 flex items-center gap-2">
-                    <Progress
-                      :model-value="unit.total_lessons > 0 ? (unit.completed_lessons / unit.total_lessons) * 100 : 0"
-                      class="h-2 flex-1" />
-                    <span class="text-[11px] font-semibold text-slate-400 shrink-0">
-                      {{ unit.completed_lessons }}/{{ unit.total_lessons }}
-                    </span>
-                  </div>
+                  <h3 class="font-bold text-slate-800 text-base">{{ unit.title }}</h3>
+                  <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ unit.description }}</p>
                 </div>
-                <!-- Arrow -->
-                <svg class="w-5 h-5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+              </div>
+              <!-- Progress -->
+              <div class="mt-4 flex items-center gap-2">
+                <Progress
+                  :model-value="unit.total_lessons > 0 ? (unit.completed_lessons / unit.total_lessons) * 100 : 0"
+                  class="h-2 flex-1 rounded-full" />
+                <span class="text-[11px] font-semibold text-slate-400 shrink-0 tabular-nums">
+                  {{ unit.completed_lessons }}/{{ unit.total_lessons }}
+                </span>
               </div>
             </CardContent>
           </Card>

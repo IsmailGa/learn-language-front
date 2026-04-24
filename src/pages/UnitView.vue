@@ -85,7 +85,7 @@ const goBack = () => router.push('/')
     <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-24">
         <!-- Header -->
         <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-            <div class="flex items-center gap-3 px-4 h-14 max-w-3xl mx-auto">
+            <div class="flex items-center gap-3 px-4 h-14 max-w-5xl mx-auto">
                 <Button variant="ghost" size="icon" class="shrink-0 rounded-full" @click="goBack">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -95,7 +95,7 @@ const goBack = () => router.push('/')
             </div>
         </header>
 
-        <div class="px-4 py-6 max-w-3xl mx-auto">
+        <div class="px-4 md:px-6 py-6 max-w-5xl mx-auto">
             <!-- Skeleton Loading -->
             <div v-if="isLoading" class="space-y-4">
                 <Skeleton class="h-4 w-3/4 mb-6" />
@@ -118,10 +118,10 @@ const goBack = () => router.push('/')
                 <p class="text-slate-500 text-sm mb-6">{{ unitDetails.description }}</p>
 
                 <!-- Lesson List -->
-                <div class="space-y-3">
+                <div class="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div v-for="(lesson, index) in unitDetails.lessons" :key="lesson.id" v-motion
                         :initial="{ opacity: 0 }"
-                        :enter="{ opacity: 1, transition: { duration: 200, delay: index * 50 } }">
+                        :enter="{ opacity: 1, transition: { duration: 200, delay: index * 40 } }">
                         <Card
                             class="overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98] transition-all"
                             @click="startLesson(lesson.id)">

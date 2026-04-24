@@ -16,6 +16,7 @@ const router = createRouter({
     { path: '/select-language', component: () => import('../pages/LanguageSelectionView.vue') },
     { path: '/unit/:id', component: () => import('../pages/UnitView.vue') },
     { path: '/lesson/:id', component: () => import('../pages/LessonView.vue') },
+    { path: '/exercise', component: () => import('../pages/CharacterExerciseView.vue') },
     { path: '/:pathMatch(.*)*', component: () => import('../pages/NotFoundView.vue') }
   ]
 })
