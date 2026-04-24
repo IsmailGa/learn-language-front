@@ -45,8 +45,8 @@ onMounted(async () => {
       <Sidebar v-if="showBottomNav" />
 
       <!-- Main Content -->
-      <main class="flex-1 w-full ml-0 transition-all duration-300" :class="{ 'md:ml-64 ': !isFullscreenPage }">
-        <div :class="isFullscreenPage ? 'w-full h-full' : 'max-w-2xl mx-auto w-full h-full pb-20 md:pb-0 '">
+      <main class="flex-1 w-full ml-0 transition-all duration-300" :class="{ 'md:ml-64': !isFullscreenPage }">
+        <div :class="isFullscreenPage ? 'w-full h-full' : 'w-full pb-20 md:pb-0'">
           <router-view v-slot="{ Component }">
             <transition name="page-fade" mode="out-in">
               <component :is="Component" />

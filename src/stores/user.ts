@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '@/api/axios';
 import WebApp from '@twa-dev/sdk';
+import i18n, { type LocaleCode } from '@/i18n';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -8,6 +9,7 @@ export const useUserStore = defineStore('user', {
     token: localStorage.getItem('token') || null,
     loading: false,
     isTelegram: !!WebApp.initData,
+    locale: (localStorage.getItem('locale') as LocaleCode) || 'ru' as LocaleCode,
   }),
 
   actions: {
@@ -136,11 +138,28 @@ export const useUserStore = defineStore('user', {
     },
 
     logout() {
-
       this.user = null;
       this.token = null;
       localStorage.removeItem('token');
       // If using router, might want to redirect here or in component
-    }
+    },
+
+    /**
+     * Сменить язык интерфейса.
+     * Обновляет vue-i18n locale и сохраняет в localStorage.
+     */
+    setLocale(code: LocaleCode) {
+      this.locale = code;
+      // @ts-ignore — globalInjection делает locale ref'ом
+      i18n.global.locale.value = code;
+      localStorage.setItem('locale', code);
+      document.documentElement.lang = code;
+    },
+  },
+
+  // pinia-plugin-persistedstate: persist token + locale across page reloads
+  persist: {
+    key: 'llp-user',
+    pick: ['token', 'locale'],
   },
 });
