@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CheckCircle, XCircle, Loader2, Eraser, Send, RotateCcw } from 'lucide-vue-next'
+import { CheckCircle, XCircle, Loader2, Eraser, Send, RotateCcw, HelpCircle } from 'lucide-vue-next'
 
 // ─── Props & Emits ──────────────────────────────────────────────────────────
 const props = withDefaults(defineProps<{
@@ -38,6 +38,58 @@ const borderClass = computed(() => {
   if (state.value === 'wrong') return 'border-red-500   shadow-[0_0_20px_rgba(239,68,68,0.4)]'
   if (state.value === 'drawing') return 'border-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.3)]'
   return 'border-slate-200 shadow-inner'
+})
+
+const showGuide = ref(false)
+
+const strokeGuides: Record<string, string[]> = {
+  "ㄱ": ["Слева-направо", "Сверху-вниз"],
+  "ㄲ": ["Левый ㄱ", "Правый ㄱ"],
+  "ㄴ": ["Сверху-вниз", "Слева-направо"],
+  "ㄷ": ["Верхняя горизонталь", "Буква ㄴ"],
+  "ㄸ": ["Левый ㄷ", "Правый ㄷ"],
+  "ㄹ": ["Буква ㄱ", "Центральная горизонталь", "Буква ㄴ"],
+  "ㅁ": ["Левая вертикаль", "Буква ㄱ", "Нижняя горизонталь"],
+  "ㅂ": ["Левая вертикаль", "Правая вертикаль", "Средняя горизонталь", "Нижняя горизонталь"],
+  "ㅃ": ["Левая ㅂ", "Правая ㅂ"],
+  "ㅅ": ["Диагональ влево", "Вправо от центра"],
+  "ㅆ": ["Левая ㅅ", "Правая ㅅ"],
+  "ㅇ": ["Кружок против часовой"],
+  "ㅈ": ["Горизонталь + влево", "Вправо от центра"],
+  "ㅉ": ["Левая ㅈ", "Правая ㅈ"],
+  "ㅊ": ["Короткая горизонталь", "Буква ㅈ"],
+  "ㅋ": ["Буква ㄱ", "Центральная горизонталь"],
+  "ㅌ": ["Две горизонтали", "Буква ㄴ"],
+  "ㅍ": ["Верхняя гор.", "Две верт.", "Нижняя гор."],
+  "ㅎ": ["Две горизонтали", "Буква ㅇ"],
+  "ㅏ": ["Верт. линия", "Короткая гор. вправо"],
+  "ㅐ": ["ㅏ", "Верт. линия"],
+  "ㅑ": ["Верт. линия", "Две гор. вправо"],
+  "ㅒ": ["ㅑ", "Верт. линия"],
+  "ㅓ": ["Гор. влево", "Верт. линия"],
+  "ㅔ": ["ㅓ", "Верт. линия"],
+  "ㅕ": ["Две гор. влево", "Верт. линия"],
+  "ㅖ": ["ㅕ", "Верт. линия"],
+  "ㅗ": ["Верт. линия", "Длинная гор."],
+  "ㅘ": ["ㅗ", "ㅏ"],
+  "ㅙ": ["ㅗ", "ㅐ"],
+  "ㅚ": ["ㅗ", "ㅣ"],
+  "ㅛ": ["Две верт. линии", "Длинная гор."],
+  "ㅜ": ["Длинная гор.", "Верт. линия вниз"],
+  "ㅝ": ["ㅜ", "ㅓ"],
+  "ㅞ": ["ㅜ", "ㅔ"],
+  "ㅟ": ["ㅜ", "ㅣ"],
+  "ㅠ": ["Длинная гор.", "Две верт. вниз"],
+  "ㅡ": ["Слева направо"],
+  "ㅢ": ["ㅡ", "ㅣ"],
+  "ㅣ": ["Сверху вниз"]
+}
+
+const currentGuide = computed(() => {
+  if (props.expectedChar && strokeGuides[props.expectedChar]) {
+    return strokeGuides[props.expectedChar]
+  }
+  return null
 })
 
 // ─── Canvas ─────────────────────────────────────────────────────────────────
@@ -79,8 +131,7 @@ onBeforeUnmount(() => {
 // ─── Рисование ──────────────────────────────────────────────────────────────
 function fillBackground() {
   if (!ctx || !canvasRef.value) return
-  ctx.fillStyle = '#ffffff' // white background
-  ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+  ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
 }
 
 function clearCanvas() {
@@ -156,7 +207,18 @@ function scheduleAutoSubmit() {
 // ─── Отправка на backend ─────────────────────────────────────────────────────
 async function submitImage() {
   if (!canvasRef.value) return
-  const base64 = canvasRef.value.toDataURL('image/png')
+
+  const tmpCanvas = document.createElement('canvas')
+  tmpCanvas.width = canvasRef.value.width
+  tmpCanvas.height = canvasRef.value.height
+  const tmpCtx = tmpCanvas.getContext('2d')
+  if (tmpCtx) {
+    tmpCtx.fillStyle = '#ffffff'
+    tmpCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height)
+    tmpCtx.drawImage(canvasRef.value, 0, 0)
+  }
+
+  const base64 = tmpCanvas.toDataURL('image/png')
 
   // Если нет endpoint — просто emit для родителя
   if (!props.apiEndpoint) {
@@ -197,13 +259,43 @@ defineExpose({ clearCanvas, submitImage })
 
     <!-- Canvas-обёртка -->
     <div :class="[
-      'relative rounded-2xl overflow-hidden touch-none border-4 transition-all duration-500',
+      'relative rounded-2xl overflow-hidden touch-none border-4 transition-all duration-500 bg-white',
       borderClass
     ]" :style="{ width: `${canvasSize}px`, height: `${canvasSize}px` }">
-      <canvas ref="canvasRef" :width="canvasSize" :height="canvasSize" class="block w-full h-full"
+      
+      <!-- Подсказка (водяной знак) на заднем фоне -->
+      <div v-if="expectedChar" class="absolute inset-0 flex items-center justify-center select-none pointer-events-none" style="z-index: 0">
+        <span class="text-slate-100 font-bold" :style="{ fontSize: `${canvasSize * 0.75}px`, lineHeight: 1 }">
+          {{ expectedChar }}
+        </span>
+      </div>
+
+      <canvas ref="canvasRef" :width="canvasSize" :height="canvasSize" class="block w-full h-full relative z-10"
         style="cursor: crosshair" @mousedown="startDrawing" @mousemove="draw" @mouseup="stopDrawing"
         @mouseleave="stopDrawing" @touchstart.passive="startDrawingTouch" @touchmove.passive="drawTouch"
         @touchend="stopDrawing" />
+
+      <!-- Гайд наложения поверх канваса -->
+      <Transition name="fade-overlay">
+        <div v-if="showGuide && currentGuide"
+             class="absolute inset-0 bg-white/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm z-20">
+          <div class="text-slate-800 font-bold mb-3">{{ t('canvas.how_to_draw', 'Как нарисовать') }} <span class="text-primary text-xl">{{ expectedChar }}</span></div>
+          <ol class="flex flex-col gap-2 w-full text-sm text-slate-700">
+            <li v-for="(step, index) in currentGuide" :key="index" class="flex gap-2 items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
+              <span class="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 font-bold text-xs shrink-0">{{ index + 1 }}</span>
+              <span>{{ step }}</span>
+            </li>
+          </ol>
+          <button @click="showGuide = false" class="mt-4 px-4 py-2 bg-slate-100 rounded-lg text-slate-600 text-sm font-semibold w-full hover:bg-slate-200 transition-colors">
+            {{ t('canvas.close', 'Понятно') }}
+          </button>
+        </div>
+      </Transition>
+
+      <button v-if="currentGuide && !showGuide && state === 'idle'" @click="showGuide = true"
+              class="absolute top-2 right-2 z-20 p-2 bg-white/80 rounded-full shadow-sm border border-slate-200 hover:bg-white transition-colors text-slate-500 hover:text-primary">
+        <HelpCircle class="w-5 h-5" />
+      </button>
 
       <!-- Лоадер поверх canvas -->
       <Transition name="fade-overlay">
