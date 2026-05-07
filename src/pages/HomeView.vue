@@ -7,18 +7,14 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription,
+  DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import { useUserStore } from '@/stores/user'
 import api from '@/api/axios'
 import {
   Flame, Heart, Star, BookOpen,
-  MessageCircle, Hash, Soup, Plane, HandMetal, Map, HeartCrack
+  MessageCircle, Hash, Soup, Plane, HandMetal, Map, HeartCrack, ChevronRight
 } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
@@ -27,7 +23,6 @@ WebApp.expand()
 
 const router = useRouter()
 const userStore = useUserStore()
-
 const currentStreak = ref(userStore.user?.streak || 0)
 
 interface Unit {
@@ -54,10 +49,10 @@ const currentCourse = ref<Course | null>(null)
 const isLoading = ref(true)
 
 const gradients = [
-  { color: 'from-emerald-400 to-emerald-500', gradient: 'bg-emerald-500' },
-  { color: 'from-blue-400 to-blue-500', gradient: 'bg-blue-500' },
-  { color: 'from-purple-400 to-purple-500', gradient: 'bg-purple-500' },
-  { color: 'from-orange-400 to-orange-500', gradient: 'bg-orange-500' },
+  { color: '',  bg: 'hsl(var(--primary))' },
+  { color: '',  bg: 'hsl(var(--success))' },
+  { color: '',  bg: 'hsl(var(--accent))' },
+  { color: '',  bg: 'hsl(var(--warning))' },
 ]
 
 const unitIcons: Component[] = [HandMetal, MessageCircle, Hash, Soup, BookOpen, Plane, Map]
@@ -65,14 +60,9 @@ const unitIcons: Component[] = [HandMetal, MessageCircle, Hash, Soup, BookOpen, 
 onMounted(async () => {
   try {
     isLoading.value = true
-
-    // Ensure user profile is loaded
-    if (!userStore.user) {
-      await userStore.fetchProfile()
-    }
+    if (!userStore.user) await userStore.fetchProfile()
 
     const courseId = userStore.user?.current_course_id
-
     if (courseId) {
       const courseResponse = await api.get(`/v1/courses/${courseId}`)
       const courseData = courseResponse.data
@@ -85,13 +75,11 @@ onMounted(async () => {
           total_lessons: u.lessons?.length ?? 0,
           completed_lessons: 0,
           color: gradients[index % gradients.length]?.color,
-          gradient: gradients[index % gradients.length]?.gradient,
+          gradient: gradients[index % gradients.length]?.bg,
         }))
         .sort((a: any, b: any) => a.order_index - b.order_index)
       currentCourse.value = courseData
     } else {
-      // If no course selected, the router should have intercepted this,
-      // but as a fallback redirect to selection
       router.push('/select-language')
     }
   } catch (error) {
@@ -100,7 +88,6 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
 
 const showNoHeartsDialog = ref(false)
 
@@ -119,93 +106,133 @@ const openUnit = (unitId: string) => {
   try { WebApp.HapticFeedback.impactOccurred('medium') } catch { }
   router.push(`/unit/${unitId}`)
 }
-
-const hapticTap = () => {
-  try { WebApp.HapticFeedback.impactOccurred('light') } catch { }
-}
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-24">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <div class="flex items-center justify-between px-4 h-14 max-w-5xl mx-auto">
-        <div class="flex items-center gap-2 cursor-pointer" @click="hapticTap">
-          <div class="w-8 h-8 rounded-lg border border-slate-200 shadow-sm flex items-center justify-center">
-            <BookOpen class="w-4 h-4 text-primary" />
+  <div class="min-h-screen" style="background: hsl(var(--background))">
+
+    <!-- ── Sticky Header ──────────────────────────────────────── -->
+    <header class="sticky top-0 z-40 glass border-b border-border/60 shadow-sm">
+      <div class="flex items-center justify-between px-4 h-14 container-fluid">
+        <!-- Logo mark (mobile) -->
+        <div class="flex items-center gap-2.5 lg:hidden">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+            style="background: hsl(var(--primary))">
+            <span class="text-white font-black text-sm" style="letter-spacing: -0.04em">T</span>
           </div>
+          <span class="font-black text-foreground" style="letter-spacing: -0.03em; font-size: 1.125rem">tilgo</span>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-1" @click="hapticTap">
-            <Flame class="w-4 h-4 text-orange-500 fill-current" />
-            <span class="font-bold text-orange-500 text-sm">{{ currentStreak }}</span>
+        <!-- Desktop title -->
+        <h1 class="hidden lg:block font-black text-foreground" style="font-size: clamp(1.25rem, 2vw, 1.5rem); letter-spacing: -0.02em">
+          {{ currentCourse?.title || 'Мой курс' }}
+        </h1>
+
+        <!-- Stats chips -->
+        <div class="flex items-center gap-2">
+          <div class="stat-chip" style="background: hsl(39 100% 95%); color: hsl(39 80% 45%)">
+            <Flame class="w-3.5 h-3.5 fill-current" />
+            <span>{{ currentStreak }}</span>
           </div>
-          <div class="flex items-center gap-1" @click="hapticTap">
-            <Heart class="w-4 h-4 text-red-500 fill-current" />
-            <span class="font-bold text-red-500 text-sm">{{ userStore.user?.hearts }}</span>
+          <div class="stat-chip" style="background: hsl(var(--accent) / 0.12); color: hsl(var(--accent))">
+            <Heart class="w-3.5 h-3.5 fill-current" />
+            <span>{{ userStore.user?.hearts }}</span>
           </div>
-          <div class="flex items-center gap-1" @click="hapticTap">
-            <Star class="w-4 h-4 text-amber-500 fill-current" />
-            <span class="font-bold text-amber-500 text-sm">{{ userStore.user?.xp }}</span>
+          <div class="stat-chip" style="background: hsl(48 100% 94%); color: hsl(42 80% 42%)">
+            <Star class="w-3.5 h-3.5 fill-current" />
+            <span>{{ userStore.user?.xp }}</span>
           </div>
         </div>
       </div>
     </header>
 
-    <div class="md:px-6 px-4 py-6 max-w-5xl mx-auto">
-      <!-- Skeleton Loading -->
-      <div v-if="isLoading" class="space-y-4">
-        <div v-for="i in 3" :key="i" class="flex items-center gap-4">
-          <Skeleton class="w-16 h-16 rounded-full shrink-0" />
-          <div class="flex-1 space-y-2">
-            <Skeleton class="h-5 w-2/3" />
-            <Skeleton class="h-3 w-1/2" />
+    <!-- ── Content ────────────────────────────────────────────── -->
+    <div class="container-fluid py-6 bottom-nav-offset">
+
+      <!-- Section header -->
+      <div v-if="!isLoading && currentCourse" class="mb-6">
+        <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Текущий курс</p>
+        <h2 class="font-black text-foreground" style="font-size: clamp(1.375rem, 3vw, 2.25rem); letter-spacing: -0.02em">
+          {{ currentCourse.title }}
+        </h2>
+      </div>
+
+      <!-- Skeleton -->
+      <div v-if="isLoading" class="cards-grid">
+        <div v-for="i in 4" :key="i" class="rounded-2xl overflow-hidden border border-border"
+          style="background: hsl(var(--card))">
+          <Skeleton class="h-1.5 w-full" />
+          <div class="p-5 space-y-4">
+            <div class="flex gap-4">
+              <Skeleton class="w-12 h-12 rounded-2xl shrink-0" />
+              <div class="flex-1 space-y-2">
+                <Skeleton class="h-4 w-3/4" />
+                <Skeleton class="h-3 w-1/2" />
+              </div>
+            </div>
             <Skeleton class="h-2 w-full rounded-full" />
           </div>
         </div>
       </div>
 
       <!-- Units Grid -->
-      <div v-else-if="currentCourse" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div v-else-if="currentCourse" class="cards-grid">
         <div
           v-for="(unit, index) in currentCourse.units"
           :key="unit.id"
           v-motion
-          :initial="{ opacity: 0, y: 10 }"
-          :enter="{ opacity: 1, y: 0, transition: { duration: 250, delay: index * 60 } }"
+          :initial="{ opacity: 0, y: 12 }"
+          :enter="{ opacity: 1, y: 0, transition: { duration: 240, delay: index * 55 } }"
         >
-          <Card
-            class="overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] h-full"
+          <div
+            class="unit-card group"
             @click="openUnit(unit.id)"
+            role="button"
+            tabindex="0"
+            @keydown.enter="openUnit(unit.id)"
           >
-            <!-- Цветная шапка-акцент -->
-            <div :class="['h-1.5 w-full bg-gradient-to-r', unit.color]" />
-            <CardContent class="p-5">
+            <!-- Top accent bar -->
+            <div class="h-1.5 w-full rounded-t-2xl" :style="{ background: unit.gradient }" />
+
+            <div class="p-5">
               <div class="flex items-start gap-4">
                 <!-- Icon -->
-                <div :class="[
-                  'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md',
-                  unit.gradient
-                ]">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md"
+                  :style="{ background: unit.gradient }">
                   <component :is="unitIcons[unit.order_index % unitIcons.length]" class="w-6 h-6 text-white" />
                 </div>
+
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-bold text-slate-800 text-base">{{ unit.title }}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ unit.description }}</p>
+                  <h3 class="font-bold text-foreground text-base leading-tight">{{ unit.title }}</h3>
+                  <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2">{{ unit.description }}</p>
+                </div>
+
+                <!-- Arrow -->
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all
+                  bg-muted group-hover:bg-primary group-hover:shadow-primary">
+                  <ChevronRight class="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
                 </div>
               </div>
+
               <!-- Progress -->
-              <div class="mt-4 flex items-center gap-2">
-                <Progress
-                  :model-value="unit.total_lessons > 0 ? (unit.completed_lessons / unit.total_lessons) * 100 : 0"
-                  class="h-2 flex-1 rounded-full" />
-                <span class="text-[11px] font-semibold text-slate-400 shrink-0 tabular-nums">
-                  {{ unit.completed_lessons }}/{{ unit.total_lessons }}
-                </span>
+              <div class="mt-4 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-muted-foreground">
+                    {{ unit.completed_lessons }} / {{ unit.total_lessons }} уроков
+                  </span>
+                  <span class="badge badge-primary">
+                    {{ unit.total_lessons > 0 ? Math.round((unit.completed_lessons / unit.total_lessons) * 100) : 0 }}%
+                  </span>
+                </div>
+                <div class="h-2 rounded-full" style="background: hsl(var(--muted))">
+                  <div
+                    class="h-full rounded-full progress-gradient transition-all"
+                    :style="{ width: unit.total_lessons > 0 ? (unit.completed_lessons / unit.total_lessons) * 100 + '%' : '0%' }"
+                  />
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -214,18 +241,20 @@ const hapticTap = () => {
     <Dialog v-model:open="showNoHeartsDialog">
       <DialogContent class="sm:max-w-md w-[calc(100%-2rem)] rounded-3xl p-6">
         <DialogHeader>
-          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center shadow-inner mx-auto mb-4">
-            <HeartCrack class="w-8 h-8 text-red-500 fill-current" />
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner mx-auto mb-4"
+            style="background: hsl(var(--accent) / 0.12)">
+            <HeartCrack class="w-8 h-8 fill-current" style="color: hsl(var(--accent))" />
           </div>
-          <DialogTitle class="text-center text-xl font-bold">
+          <DialogTitle class="text-center text-xl font-black" style="letter-spacing: -0.02em">
             Закончились сердечки!
           </DialogTitle>
-          <DialogDescription class="text-center text-slate-500 pt-2 pb-4">
+          <DialogDescription class="text-center text-muted-foreground pt-2 pb-4">
             Пройдите практику, чтобы восстановить сердечки и продолжить обучение.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter class="flex-col sm:flex-col gap-3">
-          <Button class="w-full text-base h-12 rounded-xl bg-primary hover:bg-primary/90 font-bold"
+          <Button class="w-full text-base h-12 rounded-xl font-black shadow-primary"
+            style="background: hsl(var(--primary))"
             @click="goToPracticeFromDialog">
             Пойти на практику
           </Button>
@@ -239,3 +268,33 @@ const hapticTap = () => {
 
   </div>
 </template>
+
+<style scoped>
+.unit-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+
+.unit-card:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) {
+  .unit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.unit-card:focus-visible {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
+}
+</style>

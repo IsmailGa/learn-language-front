@@ -32,41 +32,25 @@ const navigateTo = (path: string) => {
 </script>
 
 <template>
-  <nav
-    class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-1px_20px_rgba(0,0,0,0.06)] pb-safe"
-  >
-    <div class="flex items-stretch justify-around px-1 pt-1">
+  <nav class="bottom-nav md:hidden">
+    <div class="nav-inner">
       <button
         v-for="tab in tabs"
         :key="tab.path"
         @click="navigateTo(tab.path)"
-        class="relative flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 active:scale-95 min-w-0"
+        :class="['nav-item', { active: isActive(tab.path) }]"
+        :aria-label="tab.label"
       >
-        <!-- Активный фон-пилюля -->
-        <div
-          v-if="isActive(tab.path)"
-          class="absolute top-1 left-1/2 -translate-x-1/2 w-12 h-7 bg-primary/10 rounded-full transition-all duration-300"
-        />
+        <!-- Active pill background -->
+        <div v-if="isActive(tab.path)" class="active-pill" />
 
-        <!-- Иконка -->
-        <div :class="[
-          'relative z-10 w-6 h-6 flex items-center justify-center transition-all duration-200',
-          isActive(tab.path) ? 'scale-110' : ''
-        ]">
-          <component
-            :is="tab.icon"
-            :class="[
-              'w-5 h-5 transition-all duration-200',
-              isActive(tab.path) ? 'text-primary' : 'text-slate-400'
-            ]"
-          />
+        <!-- Icon -->
+        <div class="icon-wrap" :class="{ 'active': isActive(tab.path) }">
+          <component :is="tab.icon" class="nav-icon" />
         </div>
 
-        <!-- Лейбл -->
-        <span :class="[
-          'mt-0.5 text-[10px] font-semibold transition-all duration-200 truncate max-w-full',
-          isActive(tab.path) ? 'text-primary' : 'text-slate-400'
-        ]">
+        <!-- Label -->
+        <span class="nav-label" :class="{ 'active': isActive(tab.path) }">
           {{ tab.label }}
         </span>
       </button>
@@ -75,8 +59,107 @@ const navigateTo = (path: string) => {
 </template>
 
 <style scoped>
-/* Телеграм и iOS safe area — контент не уходит под Home Indicator */
-.pb-safe {
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid hsl(var(--border) / 0.7);
+  box-shadow: 0 -4px 24px rgba(108, 99, 255, 0.07);
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  padding: 6px 4px 0;
+  height: var(--bottom-nav-height, 60px);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 2px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: transform 120ms ease;
+}
+
+.nav-item:active {
+  transform: scale(0.93);
+}
+
+/* Active glow pill */
+.active-pill {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 30px;
+  border-radius: 999px;
+  background: hsl(var(--primary) / 0.12);
+  pointer-events: none;
+}
+
+/* Icon wrapper */
+.icon-wrap {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-wrap.active {
+  transform: scale(1.15);
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  transition: color 150ms;
+  color: hsl(var(--muted-foreground));
+}
+
+.nav-item.active .nav-icon {
+  color: hsl(var(--primary));
+}
+
+/* Label */
+.nav-label {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  transition: color 150ms;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-label.active {
+  color: hsl(var(--primary));
 }
 </style>

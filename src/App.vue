@@ -10,7 +10,7 @@ import { useUserStore } from './stores/user'
 const userStore = useUserStore()
 const route = useRoute()
 
-const showBottomNav = computed(() => {
+const showNav = computed(() => {
   const publicPages = ['/login', '/verify-email']
   const fullscreenPrefixes = ['/lesson/', '/practice/session']
   const isFullscreen = fullscreenPrefixes.some(p => route.path.startsWith(p))
@@ -26,64 +26,103 @@ onMounted(async () => {
   WebApp.expand()
 
   if (userStore.token) {
-    await userStore.fetchProfile();
+    await userStore.fetchProfile()
   } else {
-    await userStore.login();
+    await userStore.login()
   }
 })
 </script>
 
 <template>
-  <div class="app-container min-h-screen bg-gray-50">
+  <div class="app-root">
 
+    <!-- Splash screen -->
     <Transition name="fade">
       <SplashScreen v-if="userStore.loading" />
     </Transition>
 
-    <div v-if="!userStore.loading" class="flex flex-col md:flex-row min-h-screen">
-      <!-- Sidebar for Desktop -->
-      <Sidebar v-if="showBottomNav" />
+    <div v-if="!userStore.loading" class="app-layout">
 
-      <!-- Main Content -->
-      <main class="flex-1 w-full ml-0 transition-all duration-300" :class="{ 'md:ml-64': !isFullscreenPage }">
-        <div :class="isFullscreenPage ? 'w-full h-full' : 'w-full pb-20 md:pb-0'">
-          <router-view v-slot="{ Component }">
-            <transition name="page-fade" mode="out-in">
-              <component :is="Component" />
-            </transition>
-          </router-view>
-        </div>
+      <!-- Sidebar: Compact (md) + Full (lg+) -->
+      <Sidebar v-if="showNav" />
+
+      <!-- Main content area -->
+      <main
+        class="app-main"
+        :class="{
+          'with-sidebar': showNav && !isFullscreenPage,
+          'fullscreen': isFullscreenPage
+        }"
+      >
+        <router-view v-slot="{ Component }">
+          <transition name="page-fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </main>
 
-      <!-- BottomNav for Mobile -->
-      <BottomNav v-if="showBottomNav" class="md:hidden" />
+      <!-- Bottom Nav — mobile only -->
+      <BottomNav v-if="showNav" />
     </div>
-
   </div>
 </template>
 
 <style>
-.fade-leave-active {
-  transition: opacity 0.5s ease;
+/* ── Root ───────────────────────────────────────────────────── */
+.app-root {
+  min-height: 100dvh;
+  background: hsl(var(--background));
 }
 
+.app-layout {
+  display: flex;
+  min-height: 100dvh;
+}
+
+/* ── Main content ─────────────────────────────────────────── */
+.app-main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  /* Offset for mobile bottom nav */
+  padding-bottom: calc(var(--bottom-nav-height, 60px) + env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+/* Tablet: offset for compact sidebar */
+@media (min-width: 768px) {
+  .app-main.with-sidebar {
+    margin-left: var(--sidebar-compact-width, 72px);
+    padding-bottom: 0;
+  }
+}
+
+/* Desktop: offset for full sidebar */
+@media (min-width: 1024px) {
+  .app-main.with-sidebar {
+    margin-left: var(--sidebar-width, 240px);
+  }
+}
+
+/* Fullscreen pages (lesson, practice session) */
+.app-main.fullscreen {
+  margin-left: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ── Transitions ──────────────────────────────────────────── */
+.fade-leave-active {
+  transition: opacity 0.45s ease;
+}
 .fade-leave-to {
   opacity: 0;
 }
 
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.18s ease;
 }
-
 .page-fade-enter-from,
 .page-fade-leave-to {
   opacity: 0;
-}
-
-body {
-  margin: 0;
-  background-color: #f9fafb;
-  /* gray-50 */
 }
 </style>
