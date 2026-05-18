@@ -28,19 +28,35 @@ const currentCourse  = ref<any>(null)
 const isLoadingCourse = ref(false)
 
 const stats = computed(() => [
-  { label: 'Всего XP',      value: totalXp.value,      icon: Star    as Component, color: 'text-amber-500',  bg: 'bg-amber-50',   border: 'border-amber-100' },
-  { label: 'Серия',         value: currentStreak.value, icon: Flame   as Component, color: 'text-orange-500', bg: 'bg-orange-50',  border: 'border-orange-100' },
-  { label: 'Лучшая серия',  value: bestStreak.value,    icon: Trophy  as Component, color: 'text-emerald-500',bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  { label: 'Жизни',         value: hearts.value,        icon: Heart   as Component, color: 'text-red-500',    bg: 'bg-red-50',     border: 'border-red-100' },
+  {
+    label: 'Всего XP', value: totalXp.value, icon: Star as Component,
+    bg: 'hsl(42 100% 95%)', color: 'hsl(38 80% 42%)',
+    iconBg: 'hsl(42 100% 70%)'
+  },
+  {
+    label: 'Серия', value: currentStreak.value, icon: Flame as Component,
+    bg: 'hsl(22 100% 95%)', color: 'hsl(22 80% 48%)',
+    iconBg: 'hsl(22 100% 65%)'
+  },
+  {
+    label: 'Лучшая серия', value: bestStreak.value, icon: Trophy as Component,
+    bg: 'hsl(var(--success) / 0.1)', color: 'hsl(var(--success))',
+    iconBg: 'hsl(var(--success))'
+  },
+  {
+    label: 'Жизни', value: hearts.value, icon: Heart as Component,
+    bg: 'hsl(var(--accent) / 0.1)', color: 'hsl(var(--accent))',
+    iconBg: 'hsl(var(--accent))'
+  },
 ])
 
-const achievements: { id: number; title: string; icon: Component; unlocked: boolean; desc: string }[] = [
-  { id: 1, title: 'Первые шаги',    icon: Target   as Component, unlocked: true,  desc: 'Завершил первый урок' },
-  { id: 2, title: 'Неделя силы',    icon: Flame    as Component, unlocked: true,  desc: '7 дней подряд' },
-  { id: 3, title: 'Знаток хангыля', icon: BookOpen as Component, unlocked: true,  desc: 'Выучил алфавит' },
-  { id: 4, title: 'Полиглот',       icon: Globe    as Component, unlocked: false, desc: 'Достигни 1000 XP' },
-  { id: 5, title: 'Месяц успеха',   icon: Star     as Component, unlocked: false, desc: '30 дней подряд' },
-  { id: 6, title: 'Мастер',         icon: Crown    as Component, unlocked: false, desc: 'Завершил все уроки' },
+const achievements: { id: number; title: string; icon: Component; unlocked: boolean; desc: string; color: string }[] = [
+  { id: 1, title: 'Первые шаги',    icon: Target   as Component, unlocked: true,  desc: 'Завершил первый урок',  color: 'hsl(var(--primary))' },
+  { id: 2, title: 'Неделя силы',    icon: Flame    as Component, unlocked: true,  desc: '7 дней подряд',        color: 'hsl(22 90% 55%)' },
+  { id: 3, title: 'Знаток хангыля', icon: BookOpen as Component, unlocked: true,  desc: 'Выучил алфавит',       color: 'hsl(var(--success))' },
+  { id: 4, title: 'Полиглот',       icon: Globe    as Component, unlocked: false, desc: 'Достигни 1000 XP',     color: 'hsl(var(--muted-foreground))' },
+  { id: 5, title: 'Месяц успеха',   icon: Star     as Component, unlocked: false, desc: '30 дней подряд',       color: 'hsl(var(--muted-foreground))' },
+  { id: 6, title: 'Мастер',         icon: Crown    as Component, unlocked: false, desc: 'Завершил все уроки',   color: 'hsl(var(--muted-foreground))' },
 ]
 
 const fetchCurrentCourse = async () => {
@@ -66,113 +82,117 @@ const refreshProfile = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 pb-24 md:pb-0">
+  <div class="min-h-screen" style="background: hsl(var(--background))">
 
-    <!-- ── Header ──────────────────────────────────────────────────────────── -->
-    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <div class="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <h1 class="text-2xl font-black text-slate-800 tracking-tight">{{ t('profile.title') }}</h1>
+    <!-- Header -->
+    <header class="sticky top-0 z-40 glass border-b border-border/60 shadow-sm">
+      <div class="flex items-center justify-between px-4 h-14 container-fluid">
+        <h1 class="font-black text-foreground" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); letter-spacing: -0.02em">
+          {{ t('profile.title') }}
+        </h1>
         <button
           @click="refreshProfile"
-          class="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors"
+          class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+          style="background: hsl(var(--muted))"
         >
-          <RefreshCw class="w-4 h-4 text-slate-500" :class="{ 'animate-spin': userStore.loading }" />
+          <RefreshCw class="w-4 h-4 text-muted-foreground" :class="{ 'animate-spin': userStore.loading }" />
         </button>
       </div>
     </header>
 
-    <div class="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
+    <div class="container-fluid py-6 bottom-nav-offset max-w-5xl space-y-6">
 
-      <!-- ── Profile Card ──────────────────────────────────────────────────── -->
-      <Skeleton v-if="userStore.loading && !userStore.user" class="h-32 w-full rounded-2xl" />
+      <!-- Profile Hero Card -->
+      <Skeleton v-if="userStore.loading && !userStore.user" class="h-36 w-full rounded-2xl" />
 
-      <Card
-        v-else
-        class="bg-gradient-to-r from-primary to-blue-600 text-white border-0 shadow-xl overflow-hidden relative"
-      >
-        <!-- Паттерн-фон -->
-        <div class="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] bg-[size:24px_24px]" />
-        <CardContent class="p-6 relative">
-          <div class="flex items-center gap-5">
-            <!-- Аватар -->
-            <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center shrink-0 overflow-hidden">
-              <img v-if="userStore.user?.avatar_url" :src="userStore.user.avatar_url" class="w-full h-full object-cover" alt="avatar" />
-              <User v-else class="w-10 h-10 text-white/80" />
-            </div>
-            <!-- Инфо -->
-            <div class="flex-1 min-w-0">
-              <h2 class="text-2xl font-bold truncate">{{ userStore.user?.username || userStore.user?.email || 'Ученик' }}</h2>
-              <!-- Текущий курс -->
-              <div class="flex items-center gap-2 mt-2">
-                <template v-if="currentCourse">
-                  <span :class="['fi', 'fi-' + getFlagCode(currentCourse.target_lang?.code), 'text-base rounded-sm shadow-sm']" style="line-height:1"></span>
-                  <span class="text-sm opacity-90 font-medium">{{ currentCourse.title }}</span>
-                </template>
-                <button
-                  v-else
-                  @click="router.push('/select-language')"
-                  class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full text-sm font-semibold transition-colors"
-                >
-                  {{ t('select_language.choose') }} курс
-                </button>
-              </div>
-            </div>
-            <!-- Кнопка смены курса -->
-            <button
-              v-if="currentCourse"
-              @click="router.push('/select-language')"
-              class="shrink-0 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
-            >
-              <Globe class="w-3.5 h-3.5" />
-              Сменить
-            </button>
+      <div v-else class="profile-hero rounded-2xl p-6 relative overflow-hidden text-white">
+        <!-- Dot pattern -->
+        <div class="absolute inset-0 opacity-[0.07]"
+          style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;" />
+        <!-- No glow orb, removed -->
+
+        <div class="relative flex items-center gap-5">
+          <!-- Avatar -->
+          <div class="w-20 h-20 rounded-2xl border-2 border-white/25 flex items-center justify-center shrink-0 overflow-hidden"
+            style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px)">
+            <img v-if="userStore.user?.avatar_url" :src="userStore.user.avatar_url"
+              class="w-full h-full object-cover" alt="avatar" />
+            <User v-else class="w-10 h-10 opacity-80" />
           </div>
-        </CardContent>
-      </Card>
 
-      <!-- ── Stats Grid + Achievements (desktop 2 col) ────────────────────── -->
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <h2 class="font-black text-2xl leading-tight truncate" style="letter-spacing: -0.02em">
+              {{ userStore.user?.username || userStore.user?.email || 'Ученик' }}
+            </h2>
+            <div class="flex items-center gap-2 mt-2">
+              <template v-if="currentCourse">
+                <span :class="['fi', 'fi-' + getFlagCode(currentCourse.target_lang?.code), 'text-base rounded-sm shadow-sm']"
+                  style="line-height:1" />
+                <span class="text-sm opacity-85 font-semibold">{{ currentCourse.title }}</span>
+              </template>
+              <button v-else @click="router.push('/select-language')"
+                class="px-3 py-1 rounded-full text-sm font-bold transition-colors"
+                style="background: rgba(255,255,255,0.18)">
+                Выбрать курс
+              </button>
+            </div>
+          </div>
+
+          <!-- Change course -->
+          <button v-if="currentCourse" @click="router.push('/select-language')"
+            class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            style="background: rgba(255,255,255,0.18)">
+            <Globe class="w-3.5 h-3.5" /> Сменить
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats + Achievements grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Stats -->
         <div class="space-y-4">
-          <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Статистика</h3>
+          <h3 class="text-xs font-black text-muted-foreground uppercase tracking-widest">Статистика</h3>
+
           <div class="grid grid-cols-2 gap-3">
             <Skeleton v-if="userStore.loading && !userStore.user" v-for="i in 4" :key="i" class="h-24 rounded-2xl" />
-            <Card
-              v-else
-              v-for="stat in stats"
-              :key="stat.label"
-              :class="['border', stat.border, stat.bg, 'shadow-sm hover:shadow-md transition-shadow']"
-            >
-              <CardContent class="p-4 flex flex-col items-center justify-center text-center gap-1">
-                <component :is="stat.icon" :class="['w-6 h-6 fill-current', stat.color]" />
-                <div :class="['text-2xl font-black', stat.color]">{{ stat.value }}</div>
-                <div class="text-xs text-slate-500 font-medium">{{ stat.label }}</div>
-              </CardContent>
-            </Card>
+            <div v-else v-for="stat in stats" :key="stat.label"
+              class="stat-card rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1 border border-border/50"
+              :style="{ background: stat.bg }">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1 shadow-sm"
+                :style="{ background: stat.iconBg }">
+                <component :is="stat.icon" class="w-4.5 h-4.5 text-white fill-current" />
+              </div>
+              <div class="text-2xl font-black tabular-nums" :style="{ color: stat.color }">{{ stat.value }}</div>
+              <div class="text-[11px] text-muted-foreground font-bold">{{ stat.label }}</div>
+            </div>
           </div>
 
-          <!-- Прогресс курса -->
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <h4 class="font-bold text-slate-700 flex items-center gap-2 mb-4">
-              <TrendingUp class="w-4 h-4 text-slate-500" />
+          <!-- Course progress -->
+          <div class="rounded-2xl border border-border/60 p-5" style="background: hsl(var(--card))">
+            <h4 class="font-black text-foreground flex items-center gap-2 mb-4"
+              style="font-size: 0.9375rem">
+              <TrendingUp class="w-4 h-4" style="color: hsl(var(--primary))" />
               {{ t('profile.current_course') }}
             </h4>
             <div v-if="currentCourse" class="space-y-3">
-              <div class="flex items-center justify-between text-sm mb-1">
-                <span class="font-medium text-slate-700">{{ currentCourse.title }}</span>
-                <span class="text-slate-400">0%</span>
+              <div class="flex items-center justify-between text-sm">
+                <span class="font-bold text-foreground">{{ currentCourse.title }}</span>
+                <span class="badge badge-primary">0%</span>
               </div>
-              <Progress :model-value="0" class="h-2.5 rounded-full" />
-              <p class="text-xs text-slate-400">Прогресс по курсу будет отображаться по мере выполнения уроков</p>
+              <div class="h-2 rounded-full" style="background: hsl(var(--muted))">
+                <div class="h-full rounded-full progress-gradient" style="width: 0%" />
+              </div>
+              <p class="text-xs text-muted-foreground font-medium">
+                Прогресс отображается по мере выполнения уроков
+              </p>
             </div>
             <div v-else class="flex flex-col items-center py-4 text-center gap-3">
-              <Globe class="w-8 h-8 text-slate-300" />
-              <p class="text-sm text-slate-500">Выберите курс, чтобы начать обучение</p>
-              <button
-                @click="router.push('/select-language')"
-                class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
-              >
+              <Globe class="w-8 h-8 text-muted-foreground opacity-40" />
+              <p class="text-sm text-muted-foreground font-medium">Выберите курс, чтобы начать обучение</p>
+              <button @click="router.push('/select-language')"
+                class="text-sm font-black transition-colors" style="color: hsl(var(--primary))">
                 Выбрать курс →
               </button>
             </div>
@@ -181,27 +201,69 @@ const refreshProfile = async () => {
 
         <!-- Achievements -->
         <div class="space-y-4">
-          <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Достижения</h3>
+          <h3 class="text-xs font-black text-muted-foreground uppercase tracking-widest">Достижения</h3>
           <div class="grid grid-cols-3 gap-3">
             <div
               v-for="a in achievements"
               :key="a.id"
-              :class="[
-                'relative rounded-2xl border-2 flex flex-col items-center justify-center p-3 aspect-square transition-all',
-                a.unlocked
-                  ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm'
-                  : 'bg-slate-50 border-slate-200 opacity-40'
-              ]"
+              :class="['achievement-card rounded-2xl border-2 flex flex-col items-center justify-center p-3 aspect-square relative transition-all', a.unlocked ? 'unlocked' : 'locked']"
             >
-              <component :is="a.icon" :class="['w-7 h-7 mb-1', a.unlocked ? 'text-emerald-600 fill-current' : 'text-slate-400']" />
-              <div class="text-[10px] font-semibold text-center text-slate-700 line-clamp-2 leading-tight">{{ a.title }}</div>
-              <CheckCircle2 v-if="a.unlocked" class="absolute top-1.5 right-1.5 w-3.5 h-3.5 text-emerald-400" />
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 shadow-sm"
+                :style="{ background: a.unlocked ? a.color : 'hsl(var(--muted))' }">
+                <component :is="a.icon" class="w-4.5 h-4.5 text-white fill-current" />
+              </div>
+              <div class="text-[10px] font-black text-center leading-tight"
+                :style="{ color: a.unlocked ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))' }">
+                {{ a.title }}
+              </div>
+              <CheckCircle2 v-if="a.unlocked"
+                class="absolute top-1.5 right-1.5 w-3.5 h-3.5"
+                style="color: hsl(var(--success))" />
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
   </div>
 </template>
+
+<style scoped>
+.profile-hero {
+  background: hsl(var(--primary));
+  box-shadow: 0 8px 24px hsl(var(--primary) / 0.25);
+}
+
+.stat-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+@media (hover: hover) {
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.achievement-card {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.achievement-card.unlocked {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border) / 0.7);
+}
+
+.achievement-card.locked {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border) / 0.5);
+  opacity: 0.45;
+}
+
+@media (hover: hover) {
+  .achievement-card.unlocked:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    opacity: 1;
+  }
+}
+</style>

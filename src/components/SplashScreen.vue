@@ -4,7 +4,6 @@ import { ref, onMounted } from 'vue'
 const visible = ref(false)
 
 onMounted(() => {
-  // Small delay so the animation feels intentional
   setTimeout(() => (visible.value = true), 50)
 })
 </script>
@@ -15,11 +14,11 @@ onMounted(() => {
 
       <!-- Logo bubble -->
       <div class="logo-bubble">
-        <div class="bubble-icon">🌍</div>
+        <span class="logo-text">T</span>
       </div>
 
       <!-- App name -->
-      <h1 class="app-name">LinguaApp</h1>
+      <h1 class="app-name">TilGo</h1>
       <p class="tagline">Learn any language, every day</p>
 
       <!-- Loading dots -->
@@ -33,27 +32,24 @@ onMounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
-
 .splash {
   position: fixed;
   inset: 0;
-  z-index: 50;
-  background: #ffffff;
+  z-index: 200;
+  background: #1A1A2E;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Center column */
 .content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(18px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .content.visible {
@@ -63,44 +59,47 @@ onMounted(() => {
 
 /* Logo */
 .logo-bubble {
-  width: 96px;
-  height: 96px;
-  border-radius: 28px;
-  background: #58cc02;
+  width: 88px;
+  height: 88px;
+  border-radius: 26px;
+  background: #6C63FF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 0 #46a302;
+  box-shadow: 0 8px 32px rgba(108, 99, 255, 0.45);
   margin-bottom: 8px;
-  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: popIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-.bubble-icon {
-  font-size: 3rem;
+.logo-text {
+  font-family: 'Nunito', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ffffff;
   line-height: 1;
-  margin-top: 2px;
+  letter-spacing: -0.04em;
 }
 
 @keyframes popIn {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
 /* Text */
 .app-name {
   font-family: 'Nunito', sans-serif;
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 900;
-  color: #1f1f1f;
+  color: #ffffff;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.04em;
 }
 
 .tagline {
   font-family: 'Nunito', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #afafaf;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
   margin: 0;
   letter-spacing: 0.01em;
 }
@@ -108,20 +107,20 @@ onMounted(() => {
 /* Loading dots */
 .dots {
   display: flex;
-  gap: 6px;
-  margin-top: 32px;
+  gap: 7px;
+  margin-top: 36px;
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e5e5e5;
-  animation: bounce 0.9s var(--d, 0s) ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.2);
+  animation: bounceDot 0.9s var(--d, 0s) ease-in-out infinite;
 }
 
-@keyframes bounce {
-  0%, 80%, 100% { background: #e5e5e5; transform: scale(1); }
-  40%           { background: #58cc02; transform: scale(1.3); }
+@keyframes bounceDot {
+  0%, 80%, 100% { background: rgba(108, 99, 255, 0.3); transform: scale(1);   }
+  40%           { background: #6C63FF;                  transform: scale(1.35); }
 }
 </style>
